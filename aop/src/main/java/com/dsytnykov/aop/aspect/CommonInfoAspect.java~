@@ -1,0 +1,193 @@
+package com.dsytnykov.aop.aspect;
+
+import com.dsytnykov.aop.model.Employee;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Aspect
+@Component
+public class CommonInfoAspect {
+/*  -----------------Pointcuts-----------------*/
+    //For readme file or the whole class move to cheetsheet/spring/aop
+    //Supported pointcuts by Spring AOP
+    //execution
+    //within
+    //this
+    //target
+    //args
+    //@target
+    //@args
+    //@within
+    //@annotation
+    //bean(idOrNameTheBean) - only spring aop - not in aspectj
+
+    //Execution pattern
+    /*execution(modifiers-pattern?
+                return-type-pattern
+                declaring-type-pattern?name-pattern(param-pattern)
+                throws-pattern?)*/
+
+    @Pointcut("execution(* com.dsytnykov.aop.controller.*.*(..))")// the pointcut expression
+    public void allControllerMethods() {} //the pointcut signature
+
+    @Pointcut("within(@org.springframework.web.bind.annotation.RestController *)")
+    public void anyRestController() {
+        //It is a pointcut - the implementation can be provided in a specific advice
+    }
+
+    @Pointcut("execution(public * *(..))")
+    public void allPublicMethods() {}
+
+    @Pointcut("execution(* set*(..))")
+    public void allSetterMethods() {}
+
+    @Pointcut("execution(* com.dsytnykov.aop.service.EmployeeService.*(..))")
+    public void allEmployeeServiceMethods() {}
+
+    @Pointcut("execution(* com.dsytnykov.aop.service.*.*(..))")
+    public void anyServicePackageMethod() {}
+
+    @Pointcut("execution(* com.dsytnykov.aop.service..*.*(..))")
+    public void anyServicePackageAndSubpackageMethod() {}
+
+    @Pointcut("within(com.dsytnykov.aop.service.*)") //only Spring AOP
+    public void anyJointPointWithinServicePackage() {}
+
+    @Pointcut("within(com.dsytnykov.aop.service..*)") //only Spring AOP
+    public void anyJointPointWithinPackageOrOneOfSubpackages() {}
+
+    @Pointcut("this(com.dsytnykov.aop.service.EmployeeService)")
+    public void anyJointPointWhereProxyImplementsEmployeeServiceInterface() {}
+
+    @Pointcut("target(com.dsytnykov.aop.service.EmployeeService)")
+    public void anyJointPointWhereTargetImplementsEmployeeServiceInterface() {}
+
+    @Pointcut("args(java.io.Serializable)")
+    public void anyJointPointWithOneArgumentAndArgumentIsSerializable() {}
+
+    @Pointcut("@target(org.springframework.transaction.annotation.Transactional)")
+    public void anyJointPointWithTransactionalAnnotation() {}
+
+    @Pointcut("@within(org.springframework.transaction.annotation.Transactional)")
+    public void anyJointPointWhereDeclaredTypeOfTargetObjectHasTransactionalAnnotation() {}
+
+    @Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
+    public void anyJointPointWhereMethodHasTransactionalAnnotation() {}
+
+    @Pointcut("@args(org.springframework.transaction.annotation.Transactional)")
+    public void anyJointPointWhereMethodHasTransactionalAnnotationAsArgument() {}
+
+    @Pointcut("bean(employeeService)")
+    public void anyJointPointWhereBeanIsNamedEmployeeService() {}
+
+    @Pointcut("bean(*Service)")
+    public void anyJointPointWhereBeanNameEndsWithService() {}
+
+
+    @Pointcut("allPublicMethods() && anyJointPointWithinServicePackage()")
+    public void anyPublicMethodInServiceModule() {}
+
+    /*  -----------------Advices-----------------*/
+
+    @Before("execution(* com.dsytnykov.aop.model.*.*(..))") //Inline pointcut expression
+    public void doBeforeAdviceInline() {}
+
+    @Before("anyPublicMethodInServiceModule()") //named pointcut
+    public void doBeforeAdviceNamed() {}
+
+    /*You can have multiple advice declarations (and other members as well), all inside the same aspect.
+     We show only a single advice declaration in these examples to focus the effect of each one.*/
+    @AfterReturning("execution(* com.dsytnykov.aop.model.*.*(..))")
+    public void doAfterReturning() {}
+
+    //access in the advice body to the actual value that was returned
+    @AfterReturning(
+            pointcut="execution(* com.dsytnykov.aop.model.*.*(..))",
+            returning="retVal")
+    public void doAfterReturningWithReturnValue(Object retVal) {}
+
+    @AfterThrowing("execution(* com.dsytnykov.aop.model.*.*(..))")
+    public void doAfterThrowing() {}
+
+    /*If you want the advice to run only when exceptions of a given type are thrown, and you also often need access to the
+    thrown exception in the advice body. You can use the throwing attribute to both restrict matching (if desired — use
+    Throwable as the exception type otherwise) and bind the thrown exception to an advice parameter. */
+    @AfterThrowing(
+            pointcut="execution(* com.dsytnykov.aop.model.*.*(..))",
+            throwing="ex") //The name used in the throwing attribute must correspond to the name of a parameter in the advice method.
+    public void doAfterThrowingWithException(DataAccessException ex) {}
+    /*Note that @AfterThrowing does not indicate a general exception handling callback. Specifically, an @AfterThrowing advice method
+    is only supposed to receive exceptions from the join point (user-declared target method) itself but not from an accompanying @After/@AfterReturning method.*/
+
+    @After("execution(* com.dsytnykov.aop.model.*.*(..))")
+    public void doAfter() {}
+
+    @Around("execution(* com.dsytnykov.aop.service.*.*(..))")
+    public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
+        // start stopwatch
+        Object retVal = pjp.proceed();
+        // stop stopwatch
+        return retVal;
+    }
+
+    //----------------Advice parameters----------------
+    /*
+    Any advice method may declare, as its first parameter, a parameter of type org.aspectj.lang.JoinPoint. Note that around advice is required to declare a first parameter of type ProceedingJoinPoint, which is a subclass of JoinPoint.
+
+    The JoinPoint interface provides a number of useful methods:
+    getArgs(): Returns the method arguments.
+    getThis(): Returns the proxy object.
+    getTarget(): Returns the target object.
+    getSignature(): Returns a description of the method that is being advised.
+    toString(): Prints a useful description of the method being advised.
+
+    The parameters pattern:
+    () matches a method that takes no parameters, whereas (..) matches any number (zero or more) of parameters.
+    The (*) pattern matches a method that takes one parameter of any type. (*,String) matches a method that takes two parameters.
+    The first can be of any type, while the second must be a String
+    * */
+    @Before("execution(* com.dsytnykov.aop.model.*.*(..)) && args(employee,..)")
+    public void methodsWithParameter(Employee employee) {}
+    //It can be rewritten as
+    @Pointcut("execution(*  com.dsytnykov.aop.service.*.*(..)) && args(employee,..)")
+    private void accountDataAccessOperation(Employee employee) {}
+    @Before("accountDataAccessOperation(employee)")
+    public void validateAccount(Employee employee) {}
+
+    //-----------------Advice Parameters and Generics-----------------
+    /*
+    * public interface Sample<T> {
+	void sampleGenericMethod(T param);
+	void sampleGenericCollectionMethod(Collection<T> param);
+    }
+
+    @Before("execution(* ..Sample+.sampleGenericMethod(*)) && args(param)")
+    public void beforeSampleMethod(MyType param) {} //This approach does not work for generic collections.
+* */
+
+    //---------------Explicit Argument Names-----------------
+    //@AspectJ advice and pointcut annotations have an optional argNames attribute that you can use to specify the argument names of the annotated method.
+
+    @Before(
+            value = "allPublicMethods() && target(bean) && @annotation(transactional)",
+            argNames = "bean,transactional")
+    public void trasaction(Object bean, Transactional transactional) {
+        String code = transactional.value();
+        // ... use code and bean
+    }
+
+    @Before(
+            value = "allPublicMethods() && target(bean) && @annotation(transactional)",
+            argNames = "joinPoint,bean,transactional")
+    public void audit(JoinPoint joinPoint, Object bean, Transactional transactional) {
+        String code = transactional.value();
+        // ... use code and bean
+    }
+
+    @Before("allPublicMethods()")
+    public void
+}
