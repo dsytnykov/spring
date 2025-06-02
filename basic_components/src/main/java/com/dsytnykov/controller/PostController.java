@@ -4,6 +4,7 @@ import com.dsytnykov.dto.PostRequest;
 import com.dsytnykov.model.Post;
 import com.dsytnykov.service.PostService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +20,24 @@ public class PostController {
     }
 
     @GetMapping
-    public List<Post> getAllPosts() {
-        return service.getAllPosts();
+    public Page<Post> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return service.getAllPosts(page, size, sortBy, direction);
+    }
+
+    @GetMapping("/search")
+    public Page<Post> searchPosts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return service.searchPosts(keyword, page, size, sortBy, direction);
     }
 
     @GetMapping("/{id}")

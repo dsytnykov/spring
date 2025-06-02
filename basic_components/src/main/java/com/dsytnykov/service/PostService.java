@@ -3,6 +3,10 @@ package com.dsytnykov.service;
 import com.dsytnykov.exception.ResourceNotFoundException;
 import com.dsytnykov.model.Post;
 import com.dsytnykov.repository.PostRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,8 +21,25 @@ public class PostService {
         this.repository = repository;
     }
 
-    public List<Post> getAllPosts() {
-        return repository.findAllByOrderByCreatedAtDesc();
+    public Page<Post> getAllPosts(int page, int size, String sortBy, String direction) {
+        Sort sort = Sort.by(
+                direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC,
+                sortBy
+        );
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return repository.findAll(pageable);
+    }
+
+    public Page<Post> searchPosts(String keyword, int page, int size, String sortBy, String direction) {
+        Sort sort = Sort.by(
+                direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC,
+                sortBy
+        );
+        Pageable pageable = PageRequest.of(page, size, sort);
+        if(keyword == null || keyword.isEmpty()) {
+            return repository.findAll(pageable);
+        }
+        return repository.searchPosts(keyword, pageable);
     }
 
     public Post getByPostId(Long id) {
