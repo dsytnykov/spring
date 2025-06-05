@@ -7,6 +7,7 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,7 +38,7 @@ public class CacheController {
     }
 
     @DeleteMapping("/{cacheName}")
-    public ResponseEntity<Void> clearCache(String cacheName) {
+    public ResponseEntity<Void> clearCache(@PathVariable String cacheName) {
         Cache cache = cacheManager.getCache(cacheName);
         if(cache != null) {
             cache.clear();
