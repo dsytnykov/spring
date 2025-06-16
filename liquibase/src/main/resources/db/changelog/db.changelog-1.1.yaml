@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: Dmytro
+      changes:
+        - insert:
+            tableName: books
+            columns:
+              - column:
+                  name: title
+                  value: "Java Concurrency in Practice"
+              - column:
+                  name: author
+                  value: "Brian Goetz"
+              - column:
+                  name: isbn
+                  value: "lookatthebook"

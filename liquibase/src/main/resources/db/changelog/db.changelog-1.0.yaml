@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Dmytro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: books
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(250)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: author
+                  type: varchar(250)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: isbn
+                  type: varchar(250)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 2
+      author: Dmytro
+      changes:
+        - insert:
+            tableName: books
+            columns:
+              - column:
+                  name: title
+                  value: "Effective Java"
+              - column:
+                  name: author
+                  value: "Joshua Bloch"
+              - column:
+                  name: isbn
+                  value: "idontknow"
