@@ -1,0 +1,1 @@
+INSERT INTO books(title, author, isbn) VALUES ('System design interview', 'Alex Xu', 'lookatthebook');
