@@ -14,8 +14,8 @@ import java.util.List;
 public class CommentController {
     private final CommentService service;
 
-    public CommentController(CommentService servcie) {
-        this.service = servcie;
+    public CommentController(CommentService service) {
+        this.service = service;
     }
 
     @GetMapping
